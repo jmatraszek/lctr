@@ -1,9 +1,19 @@
+#[macro_use] extern crate quicli;
+use quicli::prelude::*;
+
 extern crate wiringpi;
 
 use wiringpi::pin::Value::{High, Low};
 use std::{thread, time};
 
-fn main() {
+/// LCTR
+#[derive(Debug, StructOpt)]
+struct Opt {
+    #[structopt(flatten)]
+    verbosity: Verbosity,
+}
+
+main!(|args: Opt, log_level: verbosity| {
     //Setup WiringPi with its own pin numbering order
     let pi = wiringpi::setup();
 
@@ -17,10 +27,10 @@ fn main() {
         let digital_value = pin0.digital_read();
         let analog_value = pin2.analog_read();
         match digital_value {
-            High => { println!("Digital: High") },
-            Low => { println!("Digital: Low") },
+            High => { info!("Digital: High") },
+            Low => { info!("Digital: Low") },
         }
-        println!("Analog: {}", analog_value);
+        info!("Analog: {}", analog_value);
         thread::sleep(interval);
     }
-}
+});

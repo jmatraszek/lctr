@@ -3,6 +3,9 @@ name = "lctr"
 version = "0.1.0"
 authors = ["Jakub Matraszek <jakub.matraszek@gmail.com>"]
 
+[dependencies]
+quicli = "0.3.0"
+
 [dependencies.wiringpi]
 # version = "0.2.4"
 git = "https://github.com/Ogeon/rust-wiringpi.git"
