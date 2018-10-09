@@ -9,28 +9,20 @@ use std::{thread, time};
 /// LCTR
 #[derive(Debug, StructOpt)]
 struct Opt {
+    #[structopt(name = "pin_number", default_value = "6", short = "p", long = "pin-number")]
+    pub pin_number: u16,
     #[structopt(flatten)]
     verbosity: Verbosity,
 }
 
 main!(|args: Opt, log_level: verbosity| {
-    //Setup WiringPi with its own pin numbering order
     let pi = wiringpi::setup();
-
-    //Use WiringPi pin 0 as input
-    let pin0 = pi.input_pin(1);
-    let pin2 = pi.input_pin(4);
-
+    let pin = pi.input_pin(args.pin_number);
     let interval = time::Duration::from_millis(500);
 
     loop {
-        let digital_value = pin0.digital_read();
-        let analog_value = pin2.analog_read();
-        match digital_value {
-            High => { info!("Digital: High") },
-            Low => { info!("Digital: Low") },
-        }
-        info!("Analog: {}", analog_value);
+        let value = pin.digital_read();
+        info!("Digital: {:?}", value);
         thread::sleep(interval);
     }
 });
