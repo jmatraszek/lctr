@@ -5,6 +5,7 @@ authors = ["Jakub Matraszek <jakub.matraszek@gmail.com>"]
 
 [dependencies]
 quicli = "0.3.0"
+mpd = "0.0.12"
 
 [dependencies.wiringpi]
 # version = "0.2.4"
