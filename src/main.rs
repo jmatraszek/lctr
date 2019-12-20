@@ -1,9 +1,8 @@
 #[macro_use] extern crate quicli;
 use quicli::prelude::*;
 
-extern crate wiringpi;
-use wiringpi::pin::Value;
-use wiringpi::pin::Value::{High, Low};
+extern crate sysfs_gpio;
+use sysfs_gpio::Pin;
 
 use std::{thread, time};
 use std::collections::VecDeque;
@@ -18,7 +17,7 @@ use chrono::prelude::*;
 #[derive(Debug, StructOpt)]
 struct Opt {
     #[structopt(name = "pin_number", default_value = "6", short = "p", long = "pin-number")]
-    pub pin_number: u16,
+    pub pin_number: u64,
     #[structopt(name = "dry_run", short = "n", long = "dry-run")]
     pub dry_run: bool,
     #[structopt(flatten)]
@@ -26,25 +25,24 @@ struct Opt {
 }
 
 main!(|args: Opt, log_level: verbosity| {
-    let pi = wiringpi::setup();
-    let pin = pi.input_pin(args.pin_number);
+    let pin = Pin::new(args.pin_number);
     let interval = time::Duration::from_millis(500);
-    let mut initial_light_readings: VecDeque<_> = vec![High, High].into_iter().collect();
-    let mut light_readings: VecDeque<Value> = VecDeque::with_capacity(2);
+    let mut initial_light_readings: VecDeque<_> = vec![1, 1].into_iter().collect();
+    let mut light_readings: VecDeque<u8> = VecDeque::with_capacity(2);
     light_readings.append(&mut initial_light_readings);
 
     let mut conn = Client::connect("127.0.0.1:6600").unwrap();
     info!("MPD status: {:?}", conn.status());
 
     loop {
-        let value = pin.digital_read();
+        let value = pin.get_value()?;
         trace!("DIGITAL READ: {:?}", value);
         light_readings.pop_front();
         light_readings.push_back(value);
         trace!("{:?}", light_readings);
         match Vec::from(light_readings.clone()).as_slice() {
-            &[High, Low] => start_playback(&args, &mut conn)?,
-            &[Low, High] => stop_playback(&args, &mut conn)?,
+            &[1, 0] => start_playback(&args, &mut conn)?,
+            &[0, 1] => stop_playback(&args, &mut conn)?,
             _ => trace!("No change."),
         };
 
