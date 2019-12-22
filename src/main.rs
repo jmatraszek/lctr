@@ -34,25 +34,29 @@ main!(|args: Opt, log_level: verbosity| {
     let mut conn = Client::connect("127.0.0.1:6600").unwrap();
     info!("MPD status: {:?}", conn.status());
 
-    loop {
-        let value = pin.get_value()?;
-        trace!("DIGITAL READ: {:?}", value);
-        light_readings.pop_front();
-        light_readings.push_back(value);
-        trace!("{:?}", light_readings);
-        match Vec::from(light_readings.clone()).as_slice() {
-            &[1, 0] => start_playback(&args, &mut conn)?,
-            &[0, 1] => stop_playback(&args, &mut conn)?,
-            _ => trace!("No change."),
-        };
+    pin.with_exported(|| {
+        pin.set_direction(sysfs_gpio::Direction::In);
 
-        conn.ping().unwrap_or_else(|err| {
-            conn.clearerror();
-            error!("Ping failed with {} error.", err);
-        });
+        loop {
+            let value = pin.get_value()?;
+            trace!("DIGITAL READ: {:?}", value);
+            light_readings.pop_front();
+            light_readings.push_back(value);
+            trace!("{:?}", light_readings);
+            match Vec::from(light_readings.clone()).as_slice() {
+                &[1, 0] => start_playback(&args, &mut conn).unwrap(),
+                &[0, 1] => stop_playback(&args, &mut conn).unwrap(),
+                _ => trace!("No change."),
+            };
 
-        thread::sleep(interval);
-    }
+            conn.ping().unwrap_or_else(|err| {
+                conn.clearerror();
+                error!("Ping failed with {} error.", err);
+            });
+
+            thread::sleep(interval);
+        }
+    });
 });
 
 fn start_playback(args: &Opt, conn: &mut Client) -> Result<()> {
