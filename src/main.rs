@@ -29,9 +29,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let pin = Pin::new(args.pin_number);
     let interval = time::Duration::from_millis(500);
-    let mut initial_light_readings: VecDeque<_> = vec![1, 1].into_iter().collect();
     let mut light_readings: VecDeque<u8> = VecDeque::with_capacity(2);
-    light_readings.append(&mut initial_light_readings);
+    light_readings.append(&mut vec![1, 1].into_iter().collect::<VecDeque<_>>());
 
     let mut conn = Client::connect("127.0.0.1:6600").unwrap();
     info!("MPD status: {:?}", conn.status());
