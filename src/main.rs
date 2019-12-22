@@ -22,10 +22,9 @@ struct Opt {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    info!("AAA");
     let args = Opt::from_args();
-    println!("{:?}", args);
-    args.verbosity.setup_env_logger("lctr")?;
+    args.log.log_all(Some(args.verbosity.log_level()))?;
+    debug!("Command line options: {:?}", args);
 
     let pin = Pin::new(args.pin_number);
     let interval = time::Duration::from_millis(500);
@@ -40,10 +39,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         loop {
             let value = pin.get_value()?;
-            trace!("DIGITAL READ: {:?}", value);
+            trace!("Pin value: {:?}", value);
             light_readings.pop_front();
             light_readings.push_back(value);
-            trace!("{:?}", light_readings);
+            trace!("Light readings: {:?}", light_readings);
             match Vec::from(light_readings.clone()).as_slice() {
                 &[1, 0] => start_playback(&args, &mut conn).unwrap(),
                 &[0, 1] => stop_playback(&args, &mut conn).unwrap(),
@@ -51,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             };
 
             conn.ping().unwrap_or_else(|err| {
-                error!("Ping failed with {} error.", err);
+                error!("MPD ping failed with {} error.", err);
                 conn.clearerror().unwrap();
             });
 
@@ -68,7 +67,7 @@ fn start_playback(args: &Opt, conn: &mut Client) -> Result<(), Box<dyn Error>> {
             error!("Clear failed with {} error.", err);
         });
         conn.load(settings.0, ..).unwrap_or_else(|err| {
-            error!("Load failed with {} error.", err);
+            error!("Playlist load failed with {} error.", err);
         });
         conn.volume(settings.1).unwrap_or_else(|err| {
             error!("Volume failed with {} error.", err);
