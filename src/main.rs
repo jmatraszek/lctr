@@ -1,16 +1,15 @@
 #[macro_use] extern crate quicli;
 use quicli::prelude::*;
 
-extern crate sysfs_gpio;
-use sysfs_gpio::Pin;
+use sysfs_gpio::{Pin, Direction};
 
 use std::{thread, time};
 use std::collections::VecDeque;
 
-extern crate mpd;
+
 use mpd::Client;
 
-extern crate chrono;
+
 use chrono::prelude::*;
 
 /// LCTR
@@ -35,7 +34,7 @@ main!(|args: Opt, log_level: verbosity| {
     info!("MPD status: {:?}", conn.status());
 
     pin.with_exported(|| {
-        pin.set_direction(sysfs_gpio::Direction::In);
+        pin.set_direction(Direction::In);
 
         loop {
             let value = pin.get_value()?;

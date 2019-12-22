@@ -2,6 +2,7 @@
 name = "lctr"
 version = "0.1.0"
 authors = ["Jakub Matraszek <jakub.matraszek@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 quicli = "0.3.0"
