@@ -1,16 +1,12 @@
-#[macro_use] extern crate quicli;
-use quicli::prelude::*;
-
+use structopt::StructOpt;
 use sysfs_gpio::{Pin, Direction};
-
 use std::{thread, time};
 use std::collections::VecDeque;
-
-
 use mpd::Client;
-
-
 use chrono::prelude::*;
+use std::error::Error;
+#[macro_use]
+extern crate log;
 
 /// LCTR
 #[derive(Debug, StructOpt)]
@@ -20,10 +16,17 @@ struct Opt {
     #[structopt(name = "dry_run", short = "n", long = "dry-run")]
     pub dry_run: bool,
     #[structopt(flatten)]
-    verbosity: Verbosity,
+    verbosity: clap_verbosity_flag::Verbosity,
+    #[structopt(flatten)]
+    log: clap_log_flag::Log,
 }
 
-main!(|args: Opt, log_level: verbosity| {
+fn main() -> Result<(), Box<dyn Error>> {
+    info!("AAA");
+    let args = Opt::from_args();
+    println!("{:?}", args);
+    args.verbosity.setup_env_logger("lctr")?;
+
     let pin = Pin::new(args.pin_number);
     let interval = time::Duration::from_millis(500);
     let mut initial_light_readings: VecDeque<_> = vec![1, 1].into_iter().collect();
@@ -34,7 +37,7 @@ main!(|args: Opt, log_level: verbosity| {
     info!("MPD status: {:?}", conn.status());
 
     pin.with_exported(|| {
-        pin.set_direction(Direction::In);
+        pin.set_direction(Direction::In)?;
 
         loop {
             let value = pin.get_value()?;
@@ -49,16 +52,17 @@ main!(|args: Opt, log_level: verbosity| {
             };
 
             conn.ping().unwrap_or_else(|err| {
-                conn.clearerror();
                 error!("Ping failed with {} error.", err);
+                conn.clearerror().unwrap();
             });
 
             thread::sleep(interval);
         }
-    });
-});
+    })?;
+    Ok(())
+}
 
-fn start_playback(args: &Opt, conn: &mut Client) -> Result<()> {
+fn start_playback(args: &Opt, conn: &mut Client) -> Result<(), Box<dyn Error>> {
     let settings = time_settings();
     if args.dry_run == false {
         conn.clear().unwrap_or_else(|err| {
@@ -78,7 +82,7 @@ fn start_playback(args: &Opt, conn: &mut Client) -> Result<()> {
     Ok(())
 }
 
-fn stop_playback(args: &Opt, conn: &mut Client) -> Result<()> {
+fn stop_playback(args: &Opt, conn: &mut Client) -> Result<(), Box<dyn Error>> {
     if args.dry_run == false {
         conn.stop().unwrap_or_else(|err| {
             error!("Stop failed with {} error.", err);

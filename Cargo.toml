@@ -5,7 +5,10 @@ authors = ["Jakub Matraszek <jakub.matraszek@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-quicli = "0.3.0"
-mpd = "0.0.12"
 chrono = "0.4"
+clap-verbosity-flag = "0.2"
+clap-log-flag = "0.2"
+log = "0.4"
+mpd = "0.0.12"
+structopt = "0.2"
 sysfs_gpio = "0.5"
