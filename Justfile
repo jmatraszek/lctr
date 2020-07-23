@@ -13,7 +13,7 @@ strip_release:
     arm-none-eabi-strip target/armv7-unknown-linux-gnueabihf/release/lctr
 
 deploy:
-    scp target/armv7-unknown-linux-gnueabihf/debug/lctr orangepizero@orangepizero:
+    scp target/armv7-unknown-linux-gnueabihf/debug/lctr orangepizero@orangepizero:bin/
 
 deploy_release:
-    scp target/armv7-unknown-linux-gnueabihf/release/lctr orangepizero@orangepizero:
+    scp target/armv7-unknown-linux-gnueabihf/release/lctr orangepizero@orangepizero:bin/
