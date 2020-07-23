@@ -1,0 +1,17 @@
+[Unit]
+Description=A light controlled toilet radio daemon
+Documentation=https://github.com/jmatraszek/lctr
+Wants=sound.target
+After=sound.target
+Wants=network-online.target
+After=network-online.target
+Wants=mpd.service
+After=mpd.service
+
+[Service]
+ExecStart=/home/orangepizero/bin/lctr -vvv
+Restart=always
+RestartSec=12
+
+[Install]
+WantedBy=default.target
