@@ -35,6 +35,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     light_readings.append(&mut vec![1, 1].into_iter().collect::<VecDeque<_>>());
 
     pin.with_exported(|| {
+        // there is an issue that the exported GPIO does not have
+        // correct permissions right away, so we need to wait a little
+        thread::sleep(interval);
+
         pin.set_direction(Direction::In)?;
 
         loop {
