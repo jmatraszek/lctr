@@ -26,13 +26,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     args.log.log_all(Some(args.verbosity.log_level()))?;
     debug!("Command line options: {:?}", args);
 
+    let mut conn = Client::connect("127.0.0.1:6600").unwrap();
+    info!("MPD status: {:?}", conn.status());
+
     let pin = Pin::new(args.pin_number);
     let interval = time::Duration::from_millis(500);
     let mut light_readings: VecDeque<u8> = VecDeque::with_capacity(2);
     light_readings.append(&mut vec![1, 1].into_iter().collect::<VecDeque<_>>());
-
-    let mut conn = Client::connect("127.0.0.1:6600").unwrap();
-    info!("MPD status: {:?}", conn.status());
 
     pin.with_exported(|| {
         pin.set_direction(Direction::In)?;
